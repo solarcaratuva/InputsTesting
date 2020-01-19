@@ -19,8 +19,14 @@ int mapThrottleToMotor(int throttle) {
   double maxDif = 649 - 260;
   int out = (int) ((throttle/maxDif) * 255);
   Serial.println(out);
+  
+  analogWrite(PIN_MOTOR_L_THROTTLE, out);
+  analogWrite(PIN_MOTOR_R_THROTTLE, out);
+  
   return out;
 }
+
+
 
 /*  Min: 235
  *  Max: 649
