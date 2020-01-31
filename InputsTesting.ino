@@ -1,24 +1,34 @@
 #include "pindef.h"
 
 void loop() {
-  int var = analogRead(PIN_THROTTLE_CTRL);
-  //Serial.println(var);
-  mapThrottleToMotor(var);
-  delay(100);
+  updateThrottle();
+  delay(50);
 }
 
 /*
- * Pre condition: 235 <= throttle <= 649
+ * Pre condition: 77 <= throttle <= 335
+ * 
+ * NOTE: Voltages do not seem to set correctly if there is no delay in the loop
+ * Also: the throttle is +5V not +12V so it needs +5V power or outputs will probably 
+ * be wrong
  */
-int mapThrottleToMotor(int throttle) {
-  //dead zone: 235 to 260
-  if (throttle < 260)
+int updateThrottle() {
+  int throttle = analogRead(PIN_THROTTLE_CTRL);
+  
+  //dead zone: 77 to 100 (about 10% pushed down)
+  if (throttle < 100) {
+    analogWrite(PIN_MOTOR_L_THROTTLE, LOW);
+    analogWrite(PIN_MOTOR_R_THROTTLE, LOW);
     return 0;
-  throttle -= 260;
+  }
+  throttle -= 100;
 
-  double maxDif = 649 - 260;
-  int out = (int) ((throttle/maxDif) * 255);
-  Serial.println(out);
+  double maxDif = 335 - 100;
+  int out = (int) ((throttle/maxDif) * 200);
+  //6.59V max with 255
+  //183 is max signal to give 5V exactly (in theory)
+  //testing yields 5.075 V max using 200 as the digital max
+  //low voltage is around 10 mV on avg
   
   analogWrite(PIN_MOTOR_L_THROTTLE, out);
   analogWrite(PIN_MOTOR_R_THROTTLE, out);
@@ -26,12 +36,6 @@ int mapThrottleToMotor(int throttle) {
   return out;
 }
 
-
-
-/*  Min: 235
- *  Max: 649
- * 
- */
 void setup() {
     Serial.begin(115200);
 
